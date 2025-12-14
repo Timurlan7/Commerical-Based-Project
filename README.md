@@ -1,0 +1,203 @@
+<img width="1470" height="956" alt="Снимок экрана 2025-12-14 в 3 47 42 PM" src="https://github.com/user-attachments/assets/62c3a2c2-717f-4513-92c3-8d0ab4ff530f" /># ASSESSMENT 1 - COMMERCIAL BASED PROJECT
+Files required:
+1. `project_transactions.csv`
+2. `hh_demographic.csv`
+3. `product.csv`
+
+Overall Objectives:
+1. Read data from CSV files
+2. Explore large datasets
+3. Create new columns for assisting in analysis
+4. Combine multiple DataFrames
+5. Filter, sort and aggregate data to pinpoint and summarise information
+6. Analyse time series with datetime fields
+7. Build plots to communicate key insights
+8. Optimise import workflow
+9. Summary tables
+
+___
+## 1. SETUP & EXPLORATORY
+1. Import libraries
+2. Load data from `project_transactions.csv`
+3. Specify columns to be used in the DataFrame:
+    * household_key
+    * BASKET_ID
+    * DAY
+    * PRODUCT_ID
+    * QUANTITY
+    * SALES_VALUE
+4. Cast the datatypes as following:
+    * "DAY": "Int16"
+    * "QUANTITY": "Int32"
+    * "PRODUCT_ID": "Int32"
+5. Run .describe().round()
+6. Info and memory usage check
+7. Run .isna().sum() to check missing value counts
+8. Overwrite the DataFrame, t to create a 'DATE' Column and drop the 'DAY' column via .assign()
+
+#1-5
+import pandas as pd
+import numpy as np   
+path = 'project_transactions.csv'
+cols = ["household_key", "BASKET_ID", "DAY", "PRODUCT_ID", "QUANTITY", "SALES_VALUE"]
+dtypes = {"DAY": "Int16", "QUANTITY": "Int32", "PRODUCT_ID": "Int32"}
+
+t = pd.read_csv(path, usecols=cols, dtype=dtypes)
+t.describe().round()
+
+#6
+t.info(memory_usage='deep')
+
+#7
+t.isna().sum()
+
+#8
+t = t.assign(DATE = (pd.to_datetime("2016", format='%Y') + pd.to_timedelta(t["DAY"].sub(1).astype(str) + " days"))).drop(["DAY"], axis=1)
+t.head()
+
+___
+## 2. TIME BASED ANALYSIS
+1. Question: Are sales growing over time?
+    * Plot the sum of sales by month:
+        * Set a date index
+        * Use values from the 'SALES_VALUE' column
+        * Calculate a monthly sum via .resample()
+        * Plot the default line graph
+2. Plot the same series for the period from 2017 January to latest:
+    * Filter above plot to specified date range with row slice in .loc[]
+3. Plot the sum of sales 2016 vs 2017 sales:
+    * Calculate a monthly sum via .resample()
+    * Create a new column 's2016' with .assign()
+        * The new column 's2016' holds values of monthly sales shifted a year (12 rows/months) --> .shift(12)
+4. Plot total sales by day of week:
+    * Groupby those transactions via .dt.dayofweek
+    * Calculate sum
+    * Plot a bar chart
+
+#1 Are sales growing over time?
+t.set_index('DATE').loc[:, 'SALES_VALUE'].resample('ME').sum().plot()
+
+#2 Plot the same series for the period from 2017 January to latest
+t.set_index('DATE').loc['2017':, 'SALES_VALUE'].resample('ME').sum().plot()
+
+#3 Plot the sum of sales 2016 vs 2017 sales
+(t.set_index('DATE').loc[:, ['SALES_VALUE']].resample('ME').sum().assign(s2016=lambda x: x['SALES_VALUE'].shift(12)).loc['2017'].plot())
+
+#4 Plot total sales by day of week
+t.groupby(t['DATE'].dt.dayofweek).agg({'SALES_VALUE': 'sum'}).plot.bar()
+
+___
+# 3. DEMOGRAPHICS
+1. Load data from `hh_demographic.csv`
+2. Specify columns to be used in the DataFrame:
+    * AGE_DESC
+    * INCOME_DESC
+    * household_key
+    * HH_COMP_DESC
+3. Cast datatypes as following:
+    * "AGE_DESC": "category"
+    * "INCOME_DESC": "category"
+    * "HH_COMP_DESC":"category"
+4. Info and memory usage check on the DataFrame
+5. Show total sales (named 'hhsales') for the household dataframe via a new column 'SALES_VALUE':
+    * Groupby transactions table 't' by household_id
+    * Calculate the aggregate sum of 'SALES_VALUE' by household
+6. Combine household sales (hhsales) to demographics DataFrame (d) via .merge(), inner join & on household_key
+    * Name the combined DataFrame as 'hhsales_d'
+7. Info and memory usage check on the new DataFrame (hhsales_d)
+8. Using the combined DataFrame (hhsales_d), plot a bar chart to show the aggregated sum of sales by age group
+    * Note: use the parameter, observed=True within .groupby() to avoid deprecation warning
+9. Using the combined DataFrame (hhsales_d), plot a bar chart to show the aggregated sum of sales by income (ordered by magnitude; descending order)
+    * Note: use the parameter, observed=True within .groupby() to avoid deprecation warning
+10. Question: Which of the demographics has the highest average sales? (The mean household spend by Age Description and HH Composition)
+    * Create a heatmap on a pivot table by:
+        * Use .pivot_table() on hhsales_d with 'AGE_DESC' as its index
+        * Use 'HH_COMP_DESC' for columns
+        * Find the aggregated mean for household sales
+        * Use the parameter, margins=True
+        * Format with a heatmap across all cells via .style.background_gradient(cmap="RdYlGn", axis=None)
+11. Delete DataFrames: hhsales & hhsales_d
+
+#1-3
+dpath = 'hh_demographic.csv'
+dcols = ["AGE_DESC", "INCOME_DESC", "household_key", "HH_COMP_DESC"]
+ddtypes = {"AGE_DESC": "category", "INCOME_DESC": "category", "HH_COMP_DESC":"category"}
+
+d = pd.read_csv(dpath, usecols=dcols, dtype=ddtypes)
+d.head()
+
+#4
+d.info(memory_usage='deep')
+
+#5 Show total sales (named 'hhsales') for the household dataframe via a new column 'SALES_VALUE'
+hhsales = t.groupby('household_key').agg({'SALES_VALUE': 'sum'})
+hhsales
+
+#6 Combine household sales (hhsales) to demographics DataFrame (d) via .merge(), inner join & on household_key
+
+hhsales_d = d.merge(hhsales, how='inner', left_on='household_key', right_on='household_key')
+hhsales_d.head()
+
+#7 Info and memory usage check on the new DataFrame (hhsales_d)
+hhsales_d.info(memory_usage='deep')
+
+#8 Using the combined DataFrame (hhsales_d), plot a bar chart to show the aggregated sum of sales by age group
+(hhsales_d.groupby(['AGE_DESC']).agg({'SALES_VALUE': 'sum'}).plot.bar())
+
+#9 Using the combined DataFrame (hhsales_d), plot a bar chart to show the aggregated sum of sales by income (ordered by magnitude; descending order)
+(hhsales_d.groupby(['INCOME_DESC']).agg({'SALES_VALUE': 'sum'}).sort_values('SALES_VALUE', ascending=False).plot.bar())
+
+#10 Question: Which of the demographics has the highest average sales? (The mean household spend by Age Description and HH Composition)
+(hhsales_d.pivot_table(index='AGE_DESC', columns='HH_COMP_DESC', values='SALES_VALUE', aggfunc='mean',margins=True).style.background_gradient(cmap='RdYlGn', axis=None))
+
+#11 Delete DataFrames: hhsales & hhsales_d
+del hhsales
+del hhsales_d
+
+___
+# 4. PRODUCT DEMOGRAPHICS
+1. Load data from `product.csv`
+2. Specify columns to be used in the DataFrame:
+    * PRODUCT_ID
+    * DEPARTMENT
+3. Cast datatypes as following:
+    * "PRODUCT_ID": "Int32"
+    * "DEPARTMENT": "category"
+4. Combine three DataFrames (t, d, p) with an inner join:
+    * .merge() DataFrame 'd' on household_key
+    * .merge() DataFrame 'p' on PRODUCT_ID
+5. Info and memory usage check on the new DataFrame (tdp)
+6. Question: Which category does the youngest demographic perform well?
+    * Create a heatmap on a pivot table by:
+        * Use .pivot_table() on tdp with 'DEPARTMENT' as its index
+        * Use 'AGE_DESC' for columns
+        * Use 'SALES_VALUE' as values
+        * Find the aggregated sum of sales
+        * Format with a heatmap across all cells via .style.background_gradient(cmap="RdYlGn", axis=1)
+
+#1-3
+ppath = 'product.csv'
+pcols = ["PRODUCT_ID", "DEPARTMENT"]
+pdtypes = {"PRODUCT_ID": "Int32", "DEPARTMENT": "category"}
+
+p = pd.read_csv(ppath, usecols=pcols, dtype=pdtypes)
+p.head()
+
+#4 Combine three DataFrames (t, d, p) with an inner join
+tdp=t.merge(d, how='inner', left_on='household_key', right_on='household_key').merge(p, how='inner', left_on='PRODUCT_ID', right_on='PRODUCT_ID')
+tdp.head()
+
+#5 Info and memory usage check on the new DataFrame (tdp)
+tdp.info(memory_usage='deep')
+
+#6 Question: Which category does the youngest demographic perform well? (Answer: Alcohol)
+(tdp.pivot_table(index='DEPARTMENT', columns='AGE_DESC', values='SALES_VALUE', aggfunc='sum',margins=False).style.background_gradient(cmap='RdYlGn', axis=1))
+
+___
+# 5. EXPORT
+Export the pivot table (tdp):
+* Excel file name: **cat_sales_dg.xlsx**
+* Worksheet name: **sales_pivot**
+
+# Export the pivot table created from above to an excel file
+tdp.to_excel('cat_sales_dg.xlsx', sheet_name='sales_pivot')
