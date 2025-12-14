@@ -56,6 +56,8 @@ t.isna().sum()
 #8
 t = t.assign(DATE = (pd.to_datetime("2016", format='%Y') + pd.to_timedelta(t["DAY"].sub(1).astype(str) + " days"))).drop(["DAY"], axis=1)
 t.head()
+<img width="1218" height="548" alt="Снимок экрана 2025-12-14 в 3 51 15 PM" src="https://github.com/user-attachments/assets/d94ea71d-5afd-44e8-b54e-ae7817f6dccf" />
+
 
 ___
 ## 2. TIME BASED ANALYSIS
@@ -78,6 +80,8 @@ ___
 
 #1 Are sales growing over time?
 t.set_index('DATE').loc[:, 'SALES_VALUE'].resample('ME').sum().plot()
+<img width="578" height="449" alt="image" src="https://github.com/user-attachments/assets/2656f77b-7621-4ffb-aa2f-dffb524357d3" />
+
 
 #2 Plot the same series for the period from 2017 January to latest
 t.set_index('DATE').loc['2017':, 'SALES_VALUE'].resample('ME').sum().plot()
