@@ -80,17 +80,27 @@ ___
 
 #1 Are sales growing over time?
 t.set_index('DATE').loc[:, 'SALES_VALUE'].resample('ME').sum().plot()
+<Axes: xlabel='DATE'>
 <img width="578" height="449" alt="image" src="https://github.com/user-attachments/assets/2656f77b-7621-4ffb-aa2f-dffb524357d3" />
 
 
 #2 Plot the same series for the period from 2017 January to latest
 t.set_index('DATE').loc['2017':, 'SALES_VALUE'].resample('ME').sum().plot()
+<Axes: xlabel='DATE'>
+<img width="591" height="449" alt="image" src="https://github.com/user-attachments/assets/37e2eaa3-498b-47e8-89ea-d6e0c9ab41cc" />
+
 
 #3 Plot the sum of sales 2016 vs 2017 sales
 (t.set_index('DATE').loc[:, ['SALES_VALUE']].resample('ME').sum().assign(s2016=lambda x: x['SALES_VALUE'].shift(12)).loc['2017'].plot())
+<Axes: xlabel='DATE'>
+<img width="591" height="449" alt="image" src="https://github.com/user-attachments/assets/dfcf49bb-4459-4f51-8b3a-0adb25427251" />
+
 
 #4 Plot total sales by day of week
 t.groupby(t['DATE'].dt.dayofweek).agg({'SALES_VALUE': 'sum'}).plot.bar()
+<Axes: xlabel='DATE'>
+<img width="547" height="442" alt="image" src="https://github.com/user-attachments/assets/00f2e457-4b4b-4b88-aab8-c654c70c4181" />
+
 
 ___
 # 3. DEMOGRAPHICS
@@ -132,29 +142,44 @@ ddtypes = {"AGE_DESC": "category", "INCOME_DESC": "category", "HH_COMP_DESC":"ca
 d = pd.read_csv(dpath, usecols=dcols, dtype=ddtypes)
 d.head()
 
+
 #4
 d.info(memory_usage='deep')
+<img width="970" height="670" alt="Снимок экрана 2025-12-14 в 3 56 31 PM" src="https://github.com/user-attachments/assets/8f51f06e-9d74-4878-8e99-ef4bad647d85" />
+
 
 #5 Show total sales (named 'hhsales') for the household dataframe via a new column 'SALES_VALUE'
 hhsales = t.groupby('household_key').agg({'SALES_VALUE': 'sum'})
 hhsales
 
 #6 Combine household sales (hhsales) to demographics DataFrame (d) via .merge(), inner join & on household_key
+<img width="905" height="736" alt="Снимок экрана 2025-12-14 в 3 57 04 PM" src="https://github.com/user-attachments/assets/868d4d7d-ad4a-4cb9-b158-88dad147a1b9" />
+
 
 hhsales_d = d.merge(hhsales, how='inner', left_on='household_key', right_on='household_key')
 hhsales_d.head()
 
 #7 Info and memory usage check on the new DataFrame (hhsales_d)
 hhsales_d.info(memory_usage='deep')
+<img width="415" height="246" alt="Снимок экрана 2025-12-14 в 3 57 46 PM" src="https://github.com/user-attachments/assets/845b3b08-3af7-4540-b171-e999cfd726e0" />
+
 
 #8 Using the combined DataFrame (hhsales_d), plot a bar chart to show the aggregated sum of sales by age group
 (hhsales_d.groupby(['AGE_DESC']).agg({'SALES_VALUE': 'sum'}).plot.bar())
+<Axes: xlabel='AGE_DESC'>
+<img width="547" height="474" alt="image" src="https://github.com/user-attachments/assets/5cc1baa1-39ec-4d9b-9d3a-8341d0e8f4af" />
+
 
 #9 Using the combined DataFrame (hhsales_d), plot a bar chart to show the aggregated sum of sales by income (ordered by magnitude; descending order)
 (hhsales_d.groupby(['INCOME_DESC']).agg({'SALES_VALUE': 'sum'}).sort_values('SALES_VALUE', ascending=False).plot.bar())
+<Axes: xlabel='INCOME_DESC'>
+<img width="578" height="491" alt="image" src="https://github.com/user-attachments/assets/52b70c4d-0d17-4652-9d2a-a73850377dc9" />
+
 
 #10 Question: Which of the demographics has the highest average sales? (The mean household spend by Age Description and HH Composition)
 (hhsales_d.pivot_table(index='AGE_DESC', columns='HH_COMP_DESC', values='SALES_VALUE', aggfunc='mean',margins=True).style.background_gradient(cmap='RdYlGn', axis=None))
+<img width="885" height="244" alt="Снимок экрана 2025-12-14 в 3 59 42 PM" src="https://github.com/user-attachments/assets/9e490149-8624-4642-8d69-8e3bdb1b5ada" />
+
 
 #11 Delete DataFrames: hhsales & hhsales_d
 del hhsales
@@ -192,12 +217,19 @@ p.head()
 #4 Combine three DataFrames (t, d, p) with an inner join
 tdp=t.merge(d, how='inner', left_on='household_key', right_on='household_key').merge(p, how='inner', left_on='PRODUCT_ID', right_on='PRODUCT_ID')
 tdp.head()
+<img width="1150" height="617" alt="Снимок экрана 2025-12-14 в 4 00 11 PM" src="https://github.com/user-attachments/assets/de53c51b-8391-49f5-bce6-72707a0fddcd" />
+
 
 #5 Info and memory usage check on the new DataFrame (tdp)
 tdp.info(memory_usage='deep')
+<img width="553" height="332" alt="Снимок экрана 2025-12-14 в 4 01 00 PM" src="https://github.com/user-attachments/assets/c5d2100c-d20c-43d6-8772-176b828b1ee6" />
+
 
 #6 Question: Which category does the youngest demographic perform well? (Answer: Alcohol)
 (tdp.pivot_table(index='DEPARTMENT', columns='AGE_DESC', values='SALES_VALUE', aggfunc='sum',margins=False).style.background_gradient(cmap='RdYlGn', axis=1))
+<img width="820" height="787" alt="Снимок экрана 2025-12-14 в 4 02 17 PM" src="https://github.com/user-attachments/assets/05a80c73-60f0-4218-a505-646a53c50518" />
+<img width="800" height="301" alt="Снимок экрана 2025-12-14 в 4 02 33 PM" src="https://github.com/user-attachments/assets/8e53612a-74f3-4b68-8dc7-ba4331b992db" />
+
 
 ___
 # 5. EXPORT
