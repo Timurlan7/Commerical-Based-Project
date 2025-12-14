@@ -1,4 +1,4 @@
-<img width="1470" height="956" alt="Снимок экрана 2025-12-14 в 3 47 42 PM" src="https://github.com/user-attachments/assets/62c3a2c2-717f-4513-92c3-8d0ab4ff530f" /># ASSESSMENT 1 - COMMERCIAL BASED PROJECT
+ASSESSMENT 1 - COMMERCIAL BASED PROJECT
 Files required:
 1. `project_transactions.csv`
 2. `hh_demographic.csv`
@@ -47,6 +47,8 @@ t.describe().round()
 
 #6
 t.info(memory_usage='deep')
+<img width="2940" height="1912" alt="image" src="https://github.com/user-attachments/assets/8932301b-dc7b-4fab-9d37-0c025dc99255" />
+
 
 #7
 t.isna().sum()
