@@ -1,0 +1,29 @@
+# ASSESSMENT 1 - COMMERCIAL BASED PROJECT
+Files required:
+1. `project_transactions.csv`
+2. `hh_demographic.csv`
+3. `product.csv`
+
+Overall Objectives:
+1. Read data from CSV files
+2. Explore large datasets
+3. Create new columns for assisting in analysis
+4. Combine multiple DataFrames
+5. Filter, sort and aggregate data to pinpoint and summarise information
+6. Analyse time series with datetime fields
+7. Build plots to communicate key insights
+8. Optimise import workflow
+9. Summary tables
+
+#1-5
+import pandas as pd
+import numpy as np   
+path = 'project_transactions.csv'
+cols = ["household_key", "BASKET_ID", "DAY", "PRODUCT_ID", "QUANTITY", "SALES_VALUE"]
+dtypes = {"DAY": "Int16", "QUANTITY": "Int32", "PRODUCT_ID": "Int32"}
+
+t = pd.read_csv(path, usecols=cols, dtype=dtypes)
+t.describe().round()
+
+#6
+t.info(memory_usage='deep')
